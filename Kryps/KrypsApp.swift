@@ -11,8 +11,8 @@ import SwiftUI
 struct KrypsApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            HomeView()
         }
     }
 }
-Attempt Commit one
+
