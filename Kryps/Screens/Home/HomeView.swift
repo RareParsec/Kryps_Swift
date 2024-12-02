@@ -14,47 +14,50 @@ struct Skeleton: Identifiable {
 
 struct HomeView: View {
     @State var posts: [Post] = []
-    @State var scrollOffset: CGFloat = 00
+    @State var scrollOffset: CGFloat = 0
+    @State var scrollPosition: ScrollPosition = ScrollPosition()
     
     var body: some View {
         ZStack{
             GeometryReader{ _ in
-                    Image("wallpaper")
-                        .resizable()
-                        .scaleEffect(1.05)
-                        .blur(radius: 15)
-                        .overlay {
-                            ScrollView{
-                                LazyVStack(spacing: 80){
-                                    ForEach(posts) { post in
-                                        ZStack{
-                                            Rectangle()
-                                                .fill()
-                                                .clipShape(RoundedRectangle(cornerRadius: 20))
-
-                                            PostCellView(post: post)
-                                        }
-                                        }
-                                }
-//                                .scrollPosition(y: scrollOffset)
-                                .padding(.top, 100)
-                            }
-                            .blendMode(.destinationOut)
-                            .background(
-                                Image("wallpaper")
-                                    .resizable()
-                                    .scaleEffect(1.05)
-                                    .blur(radius: 10)
-                                    .overlay{
+                Image("wallpaper")
+                    .resizable()
+                    .scaleEffect(1.05)
+                    .blur(radius: 15)
+                    .overlay {
+                        ScrollView{
+                            LazyVStack(spacing: 80){
+                                ForEach(posts) { post in
+                                    ZStack{
                                         Rectangle()
-                                            .background(.ultraThinMaterial)
-                                            .opacity(0.5)
+                                            .fill()
+                                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                                        
+                                        PostCellView(post: post)
                                     }
-                            )
-                            .compositingGroup()
+                                }
+                            }
+                            .padding(.top, 100)
+                            .offset(y: -scrollOffset)
                         }
-                }
-
+                        .disabled(true)
+//                        .scrollPosition($scrollPosition)
+                        .blendMode(.destinationOut)
+                        .background(
+                            Image("wallpaper")
+                                .resizable()
+                                .scaleEffect(1.05)
+                                .blur(radius: 10)
+                                .overlay{
+                                    Rectangle()
+                                        .background(.ultraThinMaterial)
+                                        .opacity(0.5)
+                                }
+                        )
+                        .compositingGroup()
+                    }
+            }
+            
             GeometryReader{_ in
                 ScrollView{
                     LazyVStack(spacing: 80){
@@ -71,6 +74,7 @@ struct HomeView: View {
                     .onPreferenceChange(HomeScrollViewOffset.self){
                         print("dedoko")
                         scrollOffset = $0
+                        scrollPosition.scrollTo(y: $0)
                     }
                 }
                 .coordinateSpace(name: "scroll")
