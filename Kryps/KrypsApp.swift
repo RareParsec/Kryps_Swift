@@ -11,7 +11,7 @@ import SwiftUI
 struct KrypsApp: App {
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            MainNavigationView()
         }
     }
 }

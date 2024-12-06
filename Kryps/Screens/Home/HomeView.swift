@@ -7,100 +7,52 @@
 
 import SwiftUI
 
-struct Skeleton: Identifiable {
-    let id = UUID()
-    let size: CGSize
-}
-
 struct HomeView: View {
-    @State var posts: [Post] = []
-    @State var scrollOffset: CGFloat = 0
-    @State var scrollPosition: ScrollPosition = ScrollPosition()
+    @StateObject var viewModel = HomeViewModel()
     
     var body: some View {
         ZStack{
-            GeometryReader{ _ in
-                Image("wallpaper")
-                    .resizable()
-                    .scaleEffect(1.05)
-                    .blur(radius: 15)
-                    .overlay {
-                        ScrollView{
-                            LazyVStack(spacing: 80){
-                                ForEach(posts) { post in
-                                    ZStack{
-                                        Rectangle()
-                                            .fill()
-                                            .clipShape(RoundedRectangle(cornerRadius: 20))
-                                        
-                                        PostCellView(post: post)
-                                    }
-                                }
-                            }
-                            .padding(.top, 100)
-                            .offset(y: -scrollOffset)
-                        }
-                        .disabled(true)
-//                        .scrollPosition($scrollPosition)
-                        .blendMode(.destinationOut)
-                        .background(
-                            Image("wallpaper")
-                                .resizable()
-                                .scaleEffect(1.05)
-                                .blur(radius: 10)
-                                .overlay{
-                                    Rectangle()
-                                        .background(.ultraThinMaterial)
-                                        .opacity(0.5)
-                                }
-                        )
-                        .compositingGroup()
-                    }
-            }
-            
-            GeometryReader{_ in
-                ScrollView{
-                    LazyVStack(spacing: 80){
-                        ForEach(posts) { post in
-                            PostCellView(post: post)
-                        }
-                    }
-                    .padding(.top, 100)
-                    .background{
-                        GeometryReader{
-                            Color.clear.preference(key: HomeScrollViewOffset.self, value: -$0.frame(in: .named("scroll")).origin.y)
-                        }
-                    }
-                    .onPreferenceChange(HomeScrollViewOffset.self){
-                        print("dedoko")
-                        scrollOffset = $0
-                        scrollPosition.scrollTo(y: $0)
+            Image("wallpaper")
+                .resizable()
+                .scaleEffect(1.05)
+                .blur(radius: 20)
+                .overlay{
+                    ZStack{
+                        Color.white.opacity(0.2)
+                        Rectangle().background(.ultraThickMaterial).opacity(0.5)
                     }
                 }
-                .coordinateSpace(name: "scroll")
+                    
+            ScrollView{
+                LazyVStack(spacing: 40){
+                    ForEach(viewModel.posts, id: \.id) { post in
+                        ZStack{
+                            Rectangle()
+                                .fill(Color.translucent)
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                            PostCellView(post: post)
+                        }
+
+                    }
+                }
+                .padding(.top, 100)
+                .scrollViewOffsetPreferenceKey { offset in
+                    viewModel.scrollOffset = offset
+                }
             }
+            .coordinateSpace(name: "scroll")
+        }
+        .task{
             
-            Text("\(scrollOffset)")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+            await viewModel.getPosts()
+            
         }
         .ignoresSafeArea()
         .preferredColorScheme(.dark)
-        .task{
-            do{
-                posts = try await NetworkManager.shared.getPosts()
-            }catch{}
-        }
     }
 }
 
-struct HomeScrollViewOffset: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value += nextValue()
-    }
-}
+
 
 #Preview {
     HomeView()
